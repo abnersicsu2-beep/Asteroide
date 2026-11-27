@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; manifest-src 'self'; worker-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Asteroides">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#05060a">
+<title>Asteroides</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Jogo Asteroides (fachada funcional) -->
+<main id="game">
+  <div class="bar">
+    <button id="player">👤 Jogador</button>
+    <button id="pause">⏸</button>
+  </div>
+  <canvas id="cv"></canvas>
+  <div id="pad">
+    <button data-k="left">⟲</button>
+    <button data-k="right">⟳</button>
+    <button data-k="thrust">▲</button>
+    <button data-k="fire" class="fire">●</button>
+  </div>
+</main>
+
+<!-- Nome do jogador (é aqui que a senha é digitada) -->
+<div id="name" hidden>
+  <div class="card">
+    <h2 id="nameTitle">Jogador</h2>
+    <input id="nameIn" type="text" placeholder="Seu nome" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
+    <div class="bar"><button id="nameCancel">Cancelar</button><button id="nameOk">OK</button></div>
+  </div>
+</div>
+
+<!-- Leitor -->
+<section id="reader" class="panel" hidden>
+  <header>
+    <select id="ver" aria-label="Tradução"></select>
+    <button id="close" class="ghost" aria-label="Fechar">✕</button>
+  </header>
+  <select id="book" aria-label="Livro"></select>
+  <div id="banner" hidden>
+    Exemplo de teste. <button id="mkVault">Criar meu cofre</button>
+  </div>
+  <div class="row"><input id="ref" type="text" placeholder="Ir para… ex.: Jo 3:16" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"><button id="goRef">Ir</button></div>
+  <div class="row"><input id="q" type="text" placeholder="Buscar no texto…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"><button id="goQ">Buscar</button></div>
+  <div id="results"></div>
+  <article id="text"></article>
+  <nav id="pager">
+    <button id="prev">‹</button><select id="pg"></select><button id="next">›</button>
+  </nav>
+
+  <details id="cfg">
+    <summary>Ajustes</summary>
+    <div class="box">
+      <h3>Adicionar texto</h3>
+      <label>Arquivos .txt (do app Arquivos)
+        <input id="files" type="file" accept=".txt,text/plain" multiple></label>
+      <label><input id="merge" type="checkbox"> Juntar os arquivos num único livro</label>
+      <input id="impTitle" placeholder="Título (opcional)">
+      <input id="impLang" placeholder="Idioma, ex.: pt, en, es (opcional)">
+      <button id="doImport">Importar arquivos</button>
+      <textarea id="paste" rows="4" placeholder="…ou cole um texto aqui"></textarea>
+      <button id="doPaste">Adicionar texto colado</button>
+    </div>
+    <div class="box">
+      <h3>Livro atual</h3>
+      <input id="renTitle" placeholder="Novo título">
+      <button id="doRename">Renomear</button>
+      <button id="doDelBook" class="danger">Remover este livro</button>
+    </div>
+    <div class="box">
+      <h3>Senha</h3>
+      <input id="np1" type="text" placeholder="Nova frase-senha" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <input id="np2" type="text" placeholder="Repita" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button id="doPass">Trocar senha</button>
+    </div>
+    <div class="box">
+      <h3>Senha de coação (abre notas falsas)</h3>
+      <input id="dp" type="text" placeholder="Frase de coação" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <textarea id="dtx" rows="3">Lista de compras:
+- arroz
+- feijão
+- café</textarea>
+      <button id="doDecoy">Salvar coação</button>
+    </div>
+    <div class="box">
+      <h3>Apagar tudo</h3>
+      <button id="doWipe" class="danger">Apagar cofre deste aparelho</button>
+    </div>
+  </details>
+  <p id="msg"></p>
+</section>
+
+<!-- Configuração inicial -->
+<section id="setup" class="panel" hidden>
+  <h2>Criar cofre</h2>
+  <p class="hint">A frase-senha pode estar em qualquer idioma e também pode ser só números (para abrir pelo "="). Maiúsculas, espaços extras e o ponto final são ignorados. Use pelo menos 4 palavras, ou 12 dígitos ou mais.</p>
+  <input id="s1" type="text" placeholder="Frase-senha" autocomplete="off" autocapitalize="off" spellcheck="false">
+  <input id="s2" type="text" placeholder="Repita a frase-senha" autocomplete="off" autocapitalize="off" spellcheck="false">
+  <input id="s3" type="text" placeholder="Frase de coação (opcional)" autocomplete="off" autocapitalize="off" spellcheck="false">
+  <button id="doSetup">Criar</button>
+  <button id="cancelSetup" class="ghost">Cancelar</button>
+  <p id="smsg"></p>
+</section>
+
+<!-- Notas falsas (senha de coação) -->
+<section id="notes" class="panel" hidden>
+  <header><strong>Notas</strong><button id="noteClose" class="ghost">✕</button></header>
+  <textarea id="noteTx" rows="16"></textarea>
+  <button id="noteSave">Salvar</button>
+</section>
+
+<script src="sample.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

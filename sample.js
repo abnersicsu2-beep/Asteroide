@@ -1,0 +1,1 @@
+window.SAMPLE=null;
